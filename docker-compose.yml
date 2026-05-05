@@ -1,0 +1,18 @@
+services:
+  medalverse-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}
+    container_name: medalverse-frontend
+    environment:
+      - NODE_ENV=production
+    networks:
+      - medalverse-network
+    restart: unless-stopped
+
+networks:
+  medalverse-network:
+    external: true
+    name: medalverse-network
