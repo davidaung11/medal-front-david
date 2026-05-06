@@ -56,7 +56,7 @@ export function AppMainSidebar({ userName, isSubmenuOpen = false, onCredentialCl
       <div className="flex w-full flex-1 items-center justify-center">
         <nav className="flex w-full flex-col gap-3">
           <SidebarItem href="/credentials-cloud" icon={Cloudy} label="Credential Cloud" active={isActive(pathname, "/credentials-cloud")} />
-          {/* <SidebarItem href="/mission-room" icon={Goal} label="Mission Room" active={isActive(pathname, "/mission-room")} /> */}
+          <SidebarItem href="/mission-room" icon={Goal} label="Mission Room" active={isActive(pathname, "/mission-room")} />
           <SidebarItem href="/experience-hub" icon={LayoutGrid} label="Experience Hub" active={isActive(pathname, "/experience-hub")} />
         </nav>
       </div>

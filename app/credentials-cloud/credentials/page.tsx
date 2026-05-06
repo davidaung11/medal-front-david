@@ -171,11 +171,11 @@ export default function CredentialsPage() {
           />
         </div>
         <button
-          type="button"
-          onClick={() => setShowFilters((prev) => !prev)}
-          className={`inline-flex h-11 items-center gap-2 rounded-xl border px-4 text-body-md-medium text-white transition duration-300 
-              bg-background-bg-brand-solid border border-border-border-brand-solid text-white hover:bg-background-bg-brand-solid-hover hover:shadow-lg active:scale-95`}
-        >
+  type="button"
+  onClick={() => setShowFilters((prev) => !prev)}
+  className={`inline-flex h-11 items-center gap-2 rounded-xl border px-4 text-body-md-medium transition duration-300 
+    bg-white border border-slate-200 text-black hover:bg-slate-50 hover:shadow-lg active:scale-95`}
+>
           <Filter size={16} />
           <span className="hidden sm:inline">Filter</span>
           {activeFilterCount > 0 ? (

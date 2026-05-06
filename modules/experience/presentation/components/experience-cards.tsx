@@ -1,13 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, Calendar, CircleStar, Clock3, FileBadge2, MapPin, Medal, Trophy, Users } from "lucide-react";
+import {
+  Bookmark,
+  Calendar,
+  Check,
+  CircleStar,
+  Clock3,
+  FileBadge2,
+  MapPin,
+  Medal,
+  Trophy,
+  User,
+} from "lucide-react";
 import { DashboardEvent } from "@/modules/experience/domain/dashboard.types";
 import { isEventStillActive } from "../experience-content.utils";
-
 function MetaIcon({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full border border-[#e7edf4] bg-white text-[#4A90E2]">
+    <span className="inline-flex h-[18px] w-[18px]  items-center justify-center rounded-full border border-[#d8e0ea]/8 bg-#FFFFFF66 text-[#4A90E2]  shadow-[0_0_1.45px_rgba(0,0,0,0.08)]">
       {children}
     </span>
   );
@@ -24,7 +34,7 @@ function CardHero({ card }: { card: DashboardEvent }) {
       }}
     >
       {card.sponsored ? (
-        <span className="absolute bottom-2.5 left-2.5 rounded-full border border-white/35 bg-white/22 px-3 py-0.5 text-[10px] font-medium tracking-[0.01em] text-white shadow-[0_4px_18px_rgba(15,23,42,0.25)] backdrop-blur-md">
+        <span className="absolute bottom-2.5 left-2.5 rounded-full border border-white/35 bg-[#EEF5FC]/20 backdrop-blur-[100px] px-3 py-0.5 text-[10px] font-medium tracking-[0.01em] text-[#FFFFFF] shadow-[0_4px_18px_rgba(15,23,42,0.25)]">
           Sponsored
         </span>
       ) : null}
@@ -32,9 +42,12 @@ function CardHero({ card }: { card: DashboardEvent }) {
         {[Medal, Trophy, CircleStar, FileBadge2].map((Icon, index) => (
           <span
             key={`${card.id}-${index}`}
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/65 bg-white/8 text-white shadow-[0_6px_18px_rgba(15,23,42,0.18)] backdrop-blur-md"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/65 bg-[#EEF5FC]/20 backdrop-blur-[100px] text-white shadow-[0_6px_18px_rgba(15,23,42,0.18)]"
           >
-            <Icon size={14} className="drop-shadow-[0_1px_1px_rgba(15,23,42,0.35)]" />
+            <Icon
+              size={14}
+              className="drop-shadow-[0_1px_1px_rgba(15,23,42,0.35)]"
+            />
           </span>
         ))}
       </div>
@@ -69,8 +82,12 @@ function CardHeader({
       </button>
       <div className="flex h-[62px] shrink-0 flex-col">
         <div className="flex flex-1 flex-col justify-center pr-10">
-          <p className="line-clamp-2 text-sm font-medium leading-[1.32] text-slate-800">{card.title}</p>
-          <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-500">{card.university}</p>
+          <p className="line-clamp-2 text-sm font-medium leading-[1.32] text-slate-800">
+            {card.title}
+          </p>
+          <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-500">
+            {card.university}
+          </p>
         </div>
         <div className="h-px w-full bg-[#edf1f5]" />
       </div>
@@ -87,25 +104,42 @@ export function EventCard({
 }) {
   return (
     <Link href={`/experience-hub/${card.id}`} className="block">
-      <article className="group flex h-[362px] min-w-0 flex-col overflow-hidden rounded-[22px] border border-[#d8e0ea] bg-white shadow-[0_1px_0_rgba(15,23,42,0.03)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_12px_30px_rgba(59,130,246,0.12)]">
+      <article className="group flex h-[362px]  min-w-0 flex-col overflow-hidden rounded-[22px] border border-[#d8e0ea] bg-white shadow-[0_1px_0_rgba(15,23,42,0.03)] transition duration-300 ease-out hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_12px_30px_rgba(59,130,246,0.12)]">
         <CardHero card={card} />
         <div className="relative flex min-h-0 flex-1 flex-col px-3.5 py-3">
           <CardHeader card={card} onToggleBookmark={onToggleBookmark} />
           <ul className="mt-2 space-y-1.5 text-[11px] leading-4 text-slate-500">
             <li className="flex items-center gap-1.5">
-              <MetaIcon><Calendar size={10} /></MetaIcon>{card.date}
+              <MetaIcon>
+                <Calendar size={10} />
+              </MetaIcon>
+              {card.date}
             </li>
             <li className="flex items-center gap-1.5">
-              <MetaIcon><Clock3 size={10} /></MetaIcon>{card.time}
+              <MetaIcon>
+                <Clock3 size={10} />
+              </MetaIcon>
+              {card.time}
             </li>
             <li className="flex items-center gap-1.5">
-              <MetaIcon><MapPin size={10} /></MetaIcon>{card.location}
+              <MetaIcon>
+                <MapPin size={10} />
+              </MetaIcon>
+              {card.location}
             </li>
             <li className="flex items-center gap-1.5">
-              <MetaIcon><Users size={10} /></MetaIcon>{card.seats}
+              <MetaIcon>
+                <User size={10} />
+              </MetaIcon>
+              {card.seats}
             </li>
           </ul>
-          <p className={`mt-auto pt-3 text-[14px] font-semibold ${card.price.includes("Free") ? "text-emerald-600" : "text-cyan-700"}`}>{card.price}</p>
+          <div className="mt-auto pt-3 flex items-center gap-2 text-[14px] font-semibold text-emerald-600">
+            {card.price.includes("Free") && (
+              <Check className="w-4 h-4 text-emerald-600" />
+            )}
+            <span>{card.price}</span>
+          </div>
         </div>
       </article>
     </Link>
@@ -136,14 +170,37 @@ export function RegisterEventCard({
         <CardHero card={card} />
         <div className="relative flex min-h-0 flex-1 flex-col px-3.5 py-3">
           <CardHeader card={card} onToggleBookmark={onToggleBookmark} />
-          <ul className="mt-2 space-y-1.5 text-[11px] leading-4 text-slate-500">
-            <li className="flex items-center gap-1.5"><MetaIcon><Calendar size={10} /></MetaIcon>{card.date}</li>
-            <li className="flex items-center gap-1.5"><MetaIcon><Clock3 size={10} /></MetaIcon>{card.time}</li>
-            <li className="flex items-center gap-1.5"><MetaIcon><MapPin size={10} /></MetaIcon>{card.location}</li>
+          <ul className="mt-2 space-y-1.5 text-[11px] leading-4 font-normal text-slate-500">
             <li className="flex items-center gap-1.5">
-              <MetaIcon><FileBadge2 size={10} /></MetaIcon>
+              <MetaIcon>
+                <Calendar size={10} />
+              </MetaIcon>
+              {card.date}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <MetaIcon>
+                <Clock3 size={10} />
+              </MetaIcon>
+              {card.time}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <MetaIcon>
+                <MapPin size={10} />
+              </MetaIcon>
+              {card.location}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <MetaIcon>
+                <FileBadge2 size={10} />
+              </MetaIcon>
               Credential Issued
-              <span className={claimStatus === "pending" ? "text-slate-400" : "text-text-brand-primary"}>
+              <span
+                className={
+                  claimStatus === "pending"
+                    ? "text-slate-400"
+                    : "text-text-brand-primary"
+                }
+              >
                 {claimStatus === "pending" ? "Pending" : card.date}
               </span>
             </li>

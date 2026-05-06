@@ -3,10 +3,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Bookmark, Calendar, CalendarClock, ChevronLeft, ChevronRight, CircleStar, Clock3, FileBadge2, MapPin, Medal, Share2, FileText, Trophy, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  Bookmark,
+  Calendar,
+  CalendarClock,
+  ChevronLeft,
+  ChevronRight,
+  CircleStar,
+  Clock3,
+  FileBadge2,
+  MapPin,
+  Medal,
+  FileText,
+  Trophy,
+  User,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EventDetail } from "@/modules/experience/domain/dashboard.types";
-import { ClaimDialog, ClaimSuccessModal, ClaimToastBanner } from "./components/claim-dialog";
+import {
+  ClaimDialog,
+  ClaimSuccessModal,
+  ClaimToastBanner,
+} from "./components/claim-dialog";
 import { buildClaimFormsForEvent } from "./experience-content.utils";
 import { ClaimDialogForm, ClaimToast } from "./experience-content.types";
 import { withBackendAuthHeaders } from "@/shared/auth/backend-access-token.client";
@@ -28,7 +49,13 @@ export function EventDetailScreen({ eventId }: Props) {
   const [showOutcomesDialog, setShowOutcomesDialog] = useState(false);
   const [claimedIds, setClaimedIds] = useState<string[]>([]);
   const [showClaimDialog, setShowClaimDialog] = useState(false);
-  const [claimDialogTab, setClaimDialogTab] = useState<"credential" | "event">("credential");
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [contactStep, setContactStep] = useState<"form" | "review" | "success">(
+    "form",
+  );
+  const [claimDialogTab, setClaimDialogTab] = useState<"credential" | "event">(
+    "credential",
+  );
   const [claimForms, setClaimForms] = useState<ClaimDialogForm[]>([]);
   const [claimActiveIndex, setClaimActiveIndex] = useState(0);
   const [isClaimSubmitting, setIsClaimSubmitting] = useState(false);
@@ -48,7 +75,9 @@ export function EventDetailScreen({ eventId }: Props) {
       if (!Array.isArray(parsed)) {
         return [];
       }
-      return parsed.filter((item: unknown): item is string => typeof item === "string");
+      return parsed.filter(
+        (item: unknown): item is string => typeof item === "string",
+      );
     } catch {
       return [];
     }
@@ -66,7 +95,9 @@ export function EventDetailScreen({ eventId }: Props) {
       if (!Array.isArray(parsed)) {
         return [];
       }
-      return parsed.filter((item: unknown): item is string => typeof item === "string");
+      return parsed.filter(
+        (item: unknown): item is string => typeof item === "string",
+      );
     } catch {
       return [];
     }
@@ -77,11 +108,17 @@ export function EventDetailScreen({ eventId }: Props) {
   const recommendedScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    window.localStorage.setItem(BOOKMARK_STORAGE_KEY, JSON.stringify(bookmarkedIds));
+    window.localStorage.setItem(
+      BOOKMARK_STORAGE_KEY,
+      JSON.stringify(bookmarkedIds),
+    );
   }, [bookmarkedIds]);
 
   useEffect(() => {
-    window.localStorage.setItem(REGISTERED_STORAGE_KEY, JSON.stringify(registeredIds));
+    window.localStorage.setItem(
+      REGISTERED_STORAGE_KEY,
+      JSON.stringify(registeredIds),
+    );
   }, [registeredIds]);
 
   useEffect(() => {
@@ -94,7 +131,9 @@ export function EventDetailScreen({ eventId }: Props) {
       if (!Array.isArray(parsed)) {
         return;
       }
-      const ids = parsed.filter((item: unknown): item is string => typeof item === "string");
+      const ids = parsed.filter(
+        (item: unknown): item is string => typeof item === "string",
+      );
       setClaimedIds(ids);
     } catch {
       // Ignore invalid localStorage value
@@ -102,7 +141,10 @@ export function EventDetailScreen({ eventId }: Props) {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(CLAIMED_STORAGE_KEY, JSON.stringify(claimedIds));
+    window.localStorage.setItem(
+      CLAIMED_STORAGE_KEY,
+      JSON.stringify(claimedIds),
+    );
   }, [claimedIds]);
 
   useEffect(() => {
@@ -146,10 +188,11 @@ export function EventDetailScreen({ eventId }: Props) {
 
   const event = data?.event;
   const isBookmarked = Boolean(event && bookmarkedIds.includes(event.id));
-  const isRegistered = Boolean(event && (event.isRegistered || registeredIds.includes(event.id)));
+  const isRegistered = Boolean(
+    event && (event.isRegistered || registeredIds.includes(event.id)),
+  );
   const isHistoryMode = Boolean(event && event.isHistory);
-  const isRegisterMode =
-    Boolean(event) && isRegistered && !isHistoryMode;
+  const isRegisterMode = Boolean(event) && isRegistered && !isHistoryMode;
   const isClaimed = Boolean(event && claimedIds.includes(event.id));
   const credentials = data?.credentials ?? [];
   const credentialCount = credentials.length;
@@ -167,7 +210,9 @@ export function EventDetailScreen({ eventId }: Props) {
 
   function toggleBookmarkById(targetId: string) {
     setBookmarkedIds((prev) =>
-      prev.includes(targetId) ? prev.filter((id) => id !== targetId) : [...prev, targetId],
+      prev.includes(targetId)
+        ? prev.filter((id) => id !== targetId)
+        : [...prev, targetId],
     );
   }
 
@@ -221,9 +266,10 @@ export function EventDetailScreen({ eventId }: Props) {
         }),
       });
 
-      const payload = (await response.json().catch(() => null)) as
-        | { success?: boolean; error?: string }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        success?: boolean;
+        error?: string;
+      } | null;
 
       if (!response.ok || !payload?.success) {
         const rawError = payload?.error ?? "Unable to claim credential";
@@ -234,11 +280,16 @@ export function EventDetailScreen({ eventId }: Props) {
       closeClaimDialog();
       if (claimSourceEventId) {
         setClaimedIds((prev) =>
-          prev.includes(claimSourceEventId) ? prev : [...prev, claimSourceEventId],
+          prev.includes(claimSourceEventId)
+            ? prev
+            : [...prev, claimSourceEventId],
         );
       }
       setShowClaimSuccessModal(true);
-      setClaimToast({ type: "success", message: "Credential claimed successfully" });
+      setClaimToast({
+        type: "success",
+        message: "Credential claimed successfully",
+      });
     } finally {
       setIsClaimSubmitting(false);
     }
@@ -255,8 +306,11 @@ export function EventDetailScreen({ eventId }: Props) {
             <ArrowLeft size={14} />
             Back
           </Link>
-          <button className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-[#f7fbff] px-4 text-sm text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.06)] hover:bg-white" type="button">
-            <Share2 size={14} />
+          <button
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-[#f7fbff] px-4 text-sm text-slate-600 shadow-[0_2px_10px_rgba(15,23,42,0.06)] hover:bg-white"
+            type="button"
+          >
+            <ArrowRight size={14} strokeWidth={2.5} />
             Share
           </button>
         </div>
@@ -269,17 +323,42 @@ export function EventDetailScreen({ eventId }: Props) {
           <section className="min-w-0 flex-1 overflow-y-auto pr-1">
             <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
               <div className="relative h-[250px]">
-                <Image src={event!.image} alt={event!.title} fill className="object-cover" />
+                <Image
+                  src={event!.image}
+                  alt={event!.title}
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div className="p-5">
-                <h1 className="text-3xl font-medium text-slate-800">{event!.title}</h1>
-                <p className="mt-1 text-sm text-slate-500">{event!.university}</p>
+                <h1 className="text-3xl font-medium text-slate-800">
+                  {event!.title}
+                </h1>
+                <p className="mt-1 text-sm text-slate-500">
+                  {event!.university}
+                </p>
 
-                <div className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 text-sm text-slate-700">
-                  <MetaRow icon={<CalendarClock size={18} />} label="Date & Time" value={`${event!.date} - ${event!.time}`} />
-                  <MetaRow icon={<MapPin size={18} />} label="Location" value={event!.location} />
-                  <MetaRow icon={<Calendar size={18} />} label="Registration Deadline" value={event!.date} />
-                  <MetaRow icon={<Users size={18} />} label="Available seats" value={event!.seats} />
+                <div className="mt-6 grid grid-cols-2  gap-x-8 gap-y-4 text-sm text-slate-700">
+                  <MetaRow
+                    icon={<CalendarClock size={18} />}
+                    label="Date & Time"
+                    value={`${event!.date} - ${event!.time}`}
+                  />
+                  <MetaRow
+                    icon={<MapPin size={18} />}
+                    label="Location"
+                    value={event!.location}
+                  />
+                  <MetaRow
+                    icon={<Calendar size={18} />}
+                    label="Registration Deadline"
+                    value={event!.date}
+                  />
+                  <MetaRow
+                    icon={<User size={18} />}
+                    label="Available seats"
+                    value={event!.seats}
+                  />
                 </div>
 
                 <Section title="Overview">
@@ -293,7 +372,10 @@ export function EventDetailScreen({ eventId }: Props) {
                 <Section title="Eligibility">
                   <div className="flex flex-wrap gap-2">
                     {data.eligibility.map((item) => (
-                      <span key={item} className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
+                      <span
+                        key={item}
+                        className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700"
+                      >
                         {item}
                       </span>
                     ))}
@@ -304,7 +386,12 @@ export function EventDetailScreen({ eventId }: Props) {
                   <div className="mb-2 flex items-center justify-end gap-2">
                     <button
                       type="button"
-                      onClick={() => outcomesScrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+                      onClick={() =>
+                        outcomesScrollRef.current?.scrollBy({
+                          left: -320,
+                          behavior: "smooth",
+                        })
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                       aria-label="Scroll outcomes left"
                     >
@@ -312,16 +399,31 @@ export function EventDetailScreen({ eventId }: Props) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => outcomesScrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+                      onClick={() =>
+                        outcomesScrollRef.current?.scrollBy({
+                          left: 320,
+                          behavior: "smooth",
+                        })
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                       aria-label="Scroll outcomes right"
                     >
                       <ChevronRight size={18} />
                     </button>
                   </div>
-                  <div ref={outcomesScrollRef} className="flex gap-3 overflow-x-auto pb-2">
+                  <div
+                    ref={outcomesScrollRef}
+                    className="flex gap-3 overflow-x-auto pb-2"
+                    style={{
+                      scrollbarWidth: "none",
+                      msOverflowStyle: "none",
+                    }}
+                  >
                     {data.outcomes.map((item) => (
-                      <div key={item} className="min-w-[260px] rounded-xl border border-[#bfdcff] bg-[#f7fbff] p-3 text-sm text-[#2d5c9b]">
+                      <div
+                        key={item}
+                        className="min-w-[270px] p-7 rounded-xl border border-[#BDD7F4] bg-[#f7fbff] text-base text-[#4A90E2]"
+                      >
                         {item}
                       </div>
                     ))}
@@ -342,13 +444,20 @@ export function EventDetailScreen({ eventId }: Props) {
                 <Section title="Agenda">
                   <div className="space-y-2 rounded-xl border border-slate-200 bg-white">
                     {data.agenda.map((row) => (
-                      <div key={`${row.time}-${row.topic}`} className="grid grid-cols-[92px_1fr] gap-3 border-b border-slate-100 p-3 last:border-b-0">
+                      <div
+                        key={`${row.time}-${row.topic}`}
+                        className="grid grid-cols-[92px_1fr] gap-3 border-b border-slate-100 p-3 last:border-b-0"
+                      >
                         <div className="inline-flex h-7 w-[84px] items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-500">
                           {row.time}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-700">{row.topic}</p>
-                          <p className="text-xs text-slate-500">{row.description}</p>
+                          <p className="text-sm font-semibold text-slate-700">
+                            {row.topic}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {row.description}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -359,7 +468,12 @@ export function EventDetailScreen({ eventId }: Props) {
                   <div className="mb-2 flex items-center justify-end gap-2">
                     <button
                       type="button"
-                      onClick={() => speakersScrollRef.current?.scrollBy({ left: -360, behavior: "smooth" })}
+                      onClick={() =>
+                        speakersScrollRef.current?.scrollBy({
+                          left: -360,
+                          behavior: "smooth",
+                        })
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                       aria-label="Scroll speakers left"
                     >
@@ -367,25 +481,47 @@ export function EventDetailScreen({ eventId }: Props) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => speakersScrollRef.current?.scrollBy({ left: 360, behavior: "smooth" })}
+                      onClick={() =>
+                        speakersScrollRef.current?.scrollBy({
+                          left: 360,
+                          behavior: "smooth",
+                        })
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                       aria-label="Scroll speakers right"
                     >
                       <ChevronRight size={18} />
                     </button>
                   </div>
-                  <div ref={speakersScrollRef} className="flex gap-8 overflow-x-auto pb-2">
+                  <div
+                    ref={speakersScrollRef}
+                    className="flex gap-8 overflow-x-auto pb-2"
+                  >
                     {data.speakers.map((speaker) => (
-                      <div key={speaker.id} className="min-w-[300px] max-w-[520px] py-2">
+                      <div
+                        key={speaker.id}
+                        className="min-w-[300px] max-w-[520px] py-2"
+                      >
                         <div className="flex items-center gap-4">
-                          <Image src={speaker.avatar} alt={speaker.name} width={36} height={36} className="rounded-full" />
+                          <Image
+                            src={speaker.avatar}
+                            alt={speaker.name}
+                            width={36}
+                            height={36}
+                            className="rounded-full"
+                          />
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-800">{speaker.name}</p>
-                            <p className="text-sm text-slate-600">{speaker.role}</p>
+                            <p className="text-sm font-semibold text-slate-800">
+                              {speaker.name}
+                            </p>
+                            <p className="text-sm text-slate-600">
+                              {speaker.role}
+                            </p>
                           </div>
                         </div>
                         <p className="mt-3 text-sm leading-5 text-slate-600">
-                          {speaker.bio ?? "A senior academic specializing in computer science research and education, with expertise in areas such as artificial intelligence."}
+                          {speaker.bio ??
+                            "A senior academic specializing in computer science research and education, with expertise in areas such as artificial intelligence."}
                         </p>
                       </div>
                     ))}
@@ -395,28 +531,254 @@ export function EventDetailScreen({ eventId }: Props) {
                 <Section title="Organizer">
                   <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50/40 px-6 py-5">
                     <div className="flex items-center gap-5">
-                      <Image src={data.organizer.avatar} alt={data.organizer.name} width={96} height={96} className="rounded-full" />
+                      <Image
+                        src={data.organizer.avatar}
+                        alt={data.organizer.name}
+                        width={96}
+                        height={96}
+                        className="rounded-full"
+                      />
                       <div>
                         <p className="inline-flex items-center gap-2 text-lg font-semibold text-slate-800">
                           {data.organizer.name}
-                          {data.organizer.verified ? <VerifiedBadgeImage size={24} /> : null}
+                          {data.organizer.verified ? (
+                            <VerifiedBadgeImage size={24} />
+                          ) : null}
                         </p>
-                        <div className="mt-3 flex items-center text-slate-700">
-                          <StatItem label="Followers" value={`${data.organizer.followers}`} />
+                        <div className="mt-1  flex items-center  text-slate-700">
+                          <StatItem
+                            label="Followers"
+                            value={`${data.organizer.followers}`}
+                          />
                           <Divider />
-                          <StatItem label="Events" value={`${data.organizer.events}`} />
+                          <StatItem
+                            label="Events"
+                            value={`${data.organizer.events}`}
+                          />
                           <Divider />
-                          <StatItem label="Hosting" value={`${data.organizer.hostingYears} Years`} />
+                          <StatItem
+                            label="Hosting"
+                            value={`${data.organizer.hostingYears} Years`}
+                          />
                           <Divider />
-                          <StatItem label="Credential Issued" value={`${data.organizer.events}`} />
+                          <StatItem
+                            label="Credential Issued"
+                            value={`${data.organizer.events}`}
+                          />
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button className="h-10 min-w-[120px] rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 shadow-[0_2px_10px_rgba(15,23,42,0.06)]" type="button">
+                      <button
+                        className="h-10 min-w-[120px] rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 shadow-[0_2px_10px_rgba(15,23,42,0.06)]"
+                        type="button"
+                        onClick={() => setShowContactDialog(true)}
+                      >
                         Contact
                       </button>
-                      <button className="h-10 min-w-[120px] rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(15,23,42,0.12)]" type="button">
+                      {showContactDialog ? (
+                        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-black/60 p-4">
+                          <div className="w-full max-w-[720px] overflow-hidden rounded-xl bg-white shadow-2xl">
+                            <div className="flex items-start justify-between bg-[#FAFAFA] px-6 py-5">
+                              <div>
+                                <h3 className="text-[22px] font-medium text-[#3C3936]">
+                                  Contact the organizer
+                                </h3>
+                                <p className="mt-1 text-[13px] text-[#3C3936]">
+                                  Your email is shared only with the event
+                                  organizer.{" "}
+                                  <span className="text-[#4A90E2]">
+                                    See Privacy Policy.
+                                  </span>
+                                </p>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowContactDialog(false);
+                                  setContactStep("form");
+                                }}
+                                className="text-2xl text-slate-500"
+                              >
+                                ×
+                              </button>
+                            </div>
+
+                            {contactStep === "form" ? (
+                              <div className="bg-[#EEF7FF] px-6 py-6">
+                                <div className="rounded-xl bg-white/80 p-4">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="mb-2 block text-sm text-[#3C3936]">
+                                        Your Name
+                                      </label>
+                                      <input
+                                        className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none"
+                                        defaultValue="Bongkod Chote"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <label className="mb-2 block text-sm text-[#3C3936]">
+                                        Email
+                                      </label>
+                                      <input
+                                        className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none"
+                                        defaultValue="justbbkkx396@gmail.com"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <label className="mb-2 mt-3 block text-sm text-[#3C3936]">
+                                    Reasons for contact
+                                  </label>
+                                  <select className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none">
+                                    <option>Question about the event</option>
+                                  </select>
+
+                                  <label className="mb-2 mt-3 block text-sm text-[#3C3936]">
+                                    Message
+                                  </label>
+                                  <textarea
+                                    className="h-[124px] w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none"
+                                    placeholder="Enter message"
+                                  />
+                                </div>
+                              </div>
+                            ) : contactStep === "review" ? (
+                              <div className="bg-[#EEF7FF] px-6 py-6">
+                                <div className="rounded-xl bg-white/80 px-4 py-5">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <p className="mb-2 text-sm text-slate-400">
+                                        Your Name
+                                      </p>
+                                      <p className="text-sm font-medium text-[#3C3936]">
+                                        Bongkod Chote
+                                      </p>
+                                    </div>
+
+                                    <div>
+                                      <p className="mb-2 text-sm text-slate-400">
+                                        Email
+                                      </p>
+                                      <p className="text-sm font-medium text-[#3C3936]">
+                                        justbbkkx396@gmail.com
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-4">
+                                    <p className="mb-2 text-sm text-slate-400">
+                                      Reasons for contact
+                                    </p>
+                                    <p className="text-sm font-medium text-[#3C3936]">
+                                      Question about the event
+                                    </p>
+                                  </div>
+
+                                  <div className="mt-4">
+                                    <p className="mb-2 text-sm text-slate-400">
+                                      Message
+                                    </p>
+                                    <p className="text-sm font-medium text-[#3C3936]">
+                                      Question about the event
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="px-6 py-10">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#E8F8F1]">
+                                  <svg
+                                    width="28"
+                                    height="28"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M7 12.5L10.5 16L17 9"
+                                      stroke="#00A870"
+                                      strokeWidth="2"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                </div>
+
+                                <h3 className="mt-6 text-[24px] font-semibold text-[#3C3936]">
+                                  Submitted contact to organizer
+                                </h3>
+
+                                <p className="mt-2 max-w-[540px] text-[15px] leading-6 text-[#6B7280]">
+                                  The organizer will contact you shortly. We’ll
+                                  notify you via the platform and email. If you
+                                  don’t hear back, please contact us.
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="flex justify-end gap-3 border-t bg-[#FAFAFA] px-6 py-4">
+                              {contactStep === "form" ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowContactDialog(false);
+                                      setContactStep("form");
+                                    }}
+                                    className="h-10 min-w-[96px] rounded-lg border border-slate-200 bg-white px-5 text-sm text-[#3C3936]"
+                                  >
+                                    Cancel
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setContactStep("review")}
+                                    className="h-10 min-w-[96px] rounded-lg bg-[#1F1F1F] px-5 text-sm text-white"
+                                  >
+                                    Next
+                                  </button>
+                                </>
+                              ) : contactStep === "review" ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setContactStep("form")}
+                                    className="h-10 min-w-[96px] rounded-lg border border-slate-200 bg-white px-5 text-sm text-[#3C3936]"
+                                  >
+                                    Back
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => setContactStep("success")}
+                                    className="h-10 min-w-[96px] rounded-lg bg-[#1F1F1F] px-5 text-sm text-white"
+                                  >
+                                    Submit
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setShowContactDialog(false);
+                                    setContactStep("form");
+                                  }}
+                                  className="h-10 min-w-[96px] rounded-lg border border-slate-200 bg-white px-5 text-sm text-[#3C3936]"
+                                >
+                                  Close
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+                      <button
+                        className="h-10 min-w-[120px] rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-[0_2px_10px_rgba(15,23,42,0.12)]"
+                        type="button"
+                      >
                         Follow
                       </button>
                     </div>
@@ -424,10 +786,21 @@ export function EventDetailScreen({ eventId }: Props) {
                 </Section>
 
                 <Section title="Location">
-                  <p className="text-sm font-semibold text-slate-700">{data.venue.name}</p>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {data.venue.name}
+                  </p>
                   <p className="text-sm text-slate-500">{data.venue.address}</p>
-                  <div className="relative mt-3 h-[280px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                    <Image src="/app/assets/maps/bangkok-map.svg" alt="Bangkok map" fill className="object-cover" />
+                  <div className="relative mt-3 h-[280px] overflow-hidden rounded-xl border border-slate-200">
+                    <iframe
+                      src="https://www.google.com/maps?q=Chulalongkorn+University+Bangkok&output=embed"
+                      title="Event location map"
+                      width="100%"
+                      height="100%"
+                      className="border-0"
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
                   </div>
                 </Section>
 
@@ -437,7 +810,12 @@ export function EventDetailScreen({ eventId }: Props) {
                       <div className="mb-2 flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => galleryScrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+                          onClick={() =>
+                            galleryScrollRef.current?.scrollBy({
+                              left: -320,
+                              behavior: "smooth",
+                            })
+                          }
                           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                           aria-label="Scroll gallery left"
                         >
@@ -445,17 +823,33 @@ export function EventDetailScreen({ eventId }: Props) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => galleryScrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+                          onClick={() =>
+                            galleryScrollRef.current?.scrollBy({
+                              left: 320,
+                              behavior: "smooth",
+                            })
+                          }
                           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                           aria-label="Scroll gallery right"
                         >
                           <ChevronRight size={18} />
                         </button>
                       </div>
-                      <div ref={galleryScrollRef} className="flex gap-2 overflow-x-auto pb-2">
+                      <div
+                        ref={galleryScrollRef}
+                        className="flex gap-2 overflow-x-auto pb-2"
+                      >
                         {galleryImages.map((img, index) => (
-                          <div key={`${img}-${index}`} className="relative h-[138px] min-w-[184px] overflow-hidden rounded-lg border border-slate-200">
-                            <Image src={img} alt="Gallery" fill className="object-cover" />
+                          <div
+                            key={`${img}-${index}`}
+                            className="relative h-[138px] min-w-[184px] overflow-hidden rounded-lg border border-slate-200"
+                          >
+                            <Image
+                              src={img}
+                              alt="Gallery"
+                              fill
+                              className="object-cover"
+                            />
                           </div>
                         ))}
                       </div>
@@ -471,7 +865,12 @@ export function EventDetailScreen({ eventId }: Props) {
                   <div className="mb-2 flex items-center justify-end gap-2">
                     <button
                       type="button"
-                      onClick={() => recommendedScrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+                      onClick={() =>
+                        recommendedScrollRef.current?.scrollBy({
+                          left: -320,
+                          behavior: "smooth",
+                        })
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                       aria-label="Scroll recommended left"
                     >
@@ -479,14 +878,22 @@ export function EventDetailScreen({ eventId }: Props) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => recommendedScrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+                      onClick={() =>
+                        recommendedScrollRef.current?.scrollBy({
+                          left: 320,
+                          behavior: "smooth",
+                        })
+                      }
                       className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_rgba(15,23,42,0.06)]"
                       aria-label="Scroll recommended right"
                     >
                       <ChevronRight size={18} />
                     </button>
                   </div>
-                  <div ref={recommendedScrollRef} className="flex gap-4 overflow-x-auto pb-2">
+                  <div
+                    ref={recommendedScrollRef}
+                    className="flex gap-4 overflow-x-auto pb-2"
+                  >
                     {recommendedBySameType.map((item) => (
                       <RecommendedEventCard
                         key={item.id}
@@ -495,7 +902,9 @@ export function EventDetailScreen({ eventId }: Props) {
                       />
                     ))}
                     {recommendedBySameType.length === 0 ? (
-                      <p className="py-6 text-sm text-slate-500">No recommended experiences with the same tag yet.</p>
+                      <p className="py-6 text-sm text-slate-500">
+                        No recommended experiences with the same tag yet.
+                      </p>
                     ) : null}
                   </div>
                 </Section>
@@ -509,9 +918,14 @@ export function EventDetailScreen({ eventId }: Props) {
                 {isHistoryMode ? (
                   <>
                     <div className="rounded-xl border border-slate-200 p-3 text-center">
-                      <p className="text-lg font-semibold leading-tight text-slate-800">Event Completed</p>
+                      <p className="text-lg font-semibold leading-tight text-slate-800">
+                        Event Completed
+                      </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        {event!.date} {event!.time !== "Time to be announced" ? event!.time : ""}
+                        {event!.date}{" "}
+                        {event!.time !== "Time to be announced"
+                          ? event!.time
+                          : ""}
                       </p>
                     </div>
                     {!isClaimed ? (
@@ -527,7 +941,9 @@ export function EventDetailScreen({ eventId }: Props) {
                 ) : (
                   <>
                     <div>
-                      <p className="text-sm text-center">{isRegisterMode ? "Start in" : "Time Remaining"}</p>
+                      <p className="text-sm text-center">
+                        {isRegisterMode ? "Start in" : "Time Remaining"}
+                      </p>
                       <div className="mt-2 grid grid-cols-3 gap-2 text-center">
                         <MiniStat label="Days" value="48" />
                         <MiniStat label="Hours" value="21" />
@@ -536,13 +952,18 @@ export function EventDetailScreen({ eventId }: Props) {
                     </div>
                     <div>
                       <p className="mt-3 text-center text-sm text-slate-500">
-                        {event!.date} {event!.time !== "Time to be announced" ? event!.time : ""}
+                        {event!.date}{" "}
+                        {event!.time !== "Time to be announced"
+                          ? event!.time
+                          : ""}
                       </p>
                     </div>
                     {!isRegisterMode ? (
                       <div className="mt-3 rounded-xl border border-slate-200 p-3 text-center">
-                        <p className="text-3xl font-semibold text-slate-800">{event!.price}</p>
-                        <p className="text-xs text-slate-500">15 seats left</p>
+                        <p className="text-3xl font-semibold text-slate-800">
+                          {event!.price}
+                        </p>
+                        <p className="text-xs text-[#4A90E2]">15 seats left</p>
                       </div>
                     ) : null}
 
@@ -556,7 +977,9 @@ export function EventDetailScreen({ eventId }: Props) {
                         if (isRegisterMode) {
                           return;
                         }
-                        setRegisteredIds((prev) => (prev.includes(event.id) ? prev : [...prev, event.id]));
+                        setRegisteredIds((prev) =>
+                          prev.includes(event.id) ? prev : [...prev, event.id],
+                        );
                       }}
                     >
                       {isRegisterMode ? "QR Code" : "Register Now"}
@@ -565,7 +988,9 @@ export function EventDetailScreen({ eventId }: Props) {
                 )}
                 <button
                   className={`mt-3 h-11 w-full rounded-xl border text-sm font-semibold ${
-                    isBookmarked ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-700"
+                    isBookmarked
+                      ? "border-blue-200 bg-blue-50 text-blue-700"
+                      : "border-slate-200 text-slate-700"
                   }`}
                   type="button"
                   onClick={() => event && toggleBookmarkById(event.id)}
@@ -574,8 +999,12 @@ export function EventDetailScreen({ eventId }: Props) {
                   {isBookmarked ? "Bookmarked" : "Bookmark"}
                 </button>
                 {!isHistoryMode ? (
-                  <button className="mt-3 h-11 w-full rounded-xl border border-slate-200 text-sm font-semibold text-slate-700" type="button">
-                    <Calendar size={18} className="mr-1 inline" />Google Calendar
+                  <button
+                    className="mt-3 h-11 w-full rounded-xl border border-slate-200 text-sm font-semibold text-slate-700"
+                    type="button"
+                  >
+                    <Calendar size={18} className="mr-1 inline" />
+                    Google Calendar
                   </button>
                 ) : null}
               </div>
@@ -587,8 +1016,10 @@ export function EventDetailScreen({ eventId }: Props) {
                     <ChevronRight size={16} className="text-slate-400" />
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-500">
-                    <Bookmark size={12} />
-                    {credentialCount > 0 ? `${safeCredentialIndex + 1}/${credentialCount}` : "0/0"}
+                    <Award size={12} />
+                    {credentialCount > 0
+                      ? `${safeCredentialIndex + 1}/${credentialCount}`
+                      : "0/0"}
                   </span>
                 </div>
                 {activeCredential ? (
@@ -600,9 +1031,17 @@ export function EventDetailScreen({ eventId }: Props) {
                         </span>
                       </div>
                       <div className="relative -mt-9 mb-2 ml-2 flex h-[84px] w-[84px] items-center justify-center rounded-full border-4 border-white bg-[#8fb1d5]">
-                        <Image src="/assets/icons/cone.svg" alt="Cone" width={50} height={50} className="h-[50px] w-[50px]" />
+                        <Image
+                          src="/app/assets/icons/cone.svg"
+                          alt="Cone"
+                          width={50}
+                          height={50}
+                          className="h-[50px] w-[50px]"
+                        />
                       </div>
-                      <p className="text-[16px] font-semibold leading-8 text-slate-800">{activeCredential.title}</p>
+                      <p className="text-[16px] font-semibold leading-8 text-slate-800">
+                        {activeCredential.title}
+                      </p>
                       <p className="mt-1 line-clamp-3 text-[13px] leading-5 text-slate-500">
                         {activeCredential.description}
                       </p>
@@ -610,7 +1049,9 @@ export function EventDetailScreen({ eventId }: Props) {
                         <p className="text-xs text-slate-400">Organization</p>
                         <div className="mt-1 flex items-center gap-1.5 text-[18px] font-semibold text-slate-800">
                           {activeCredential.organization}
-                          {activeCredential.verified ? <VerifiedBadgeImage size={18} /> : null}
+                          {activeCredential.verified ? (
+                            <VerifiedBadgeImage size={18} />
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -619,7 +1060,9 @@ export function EventDetailScreen({ eventId }: Props) {
                         <FileText size={14} />
                         Requirement
                       </p>
-                      <p className="mt-1 text-sm">{activeCredential.requirement}</p>
+                      <p className="mt-1 text-sm">
+                        {activeCredential.requirement}
+                      </p>
                     </div>
                   </>
                 ) : (
@@ -630,21 +1073,27 @@ export function EventDetailScreen({ eventId }: Props) {
                 <div className="mt-3 flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => setCredentialIndex((prev) => Math.max(0, prev - 1))}
+                    onClick={() =>
+                      setCredentialIndex((prev) => Math.max(0, prev - 1))
+                    }
                     disabled={safeCredentialIndex <= 0}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 disabled:opacity-40"
                   >
                     <ChevronLeft size={14} />
                   </button>
                   <div className="flex items-center gap-1.5">
-                    {Array.from({ length: Math.max(credentialCount, 1) }).map((_, index) => (
-                      <span
-                        key={`credential-dot-${index}`}
-                        className={`rounded-full ${
-                          index === safeCredentialIndex ? "h-1.5 w-5 bg-blue-500" : "h-1.5 w-1.5 bg-slate-300"
-                        }`}
-                      />
-                    ))}
+                    {Array.from({ length: Math.max(credentialCount, 1) }).map(
+                      (_, index) => (
+                        <span
+                          key={`credential-dot-${index}`}
+                          className={`rounded-full ${
+                            index === safeCredentialIndex
+                              ? "h-1.5 w-5 bg-blue-500"
+                              : "h-1.5 w-1.5 bg-slate-300"
+                          }`}
+                        />
+                      ),
+                    )}
                   </div>
                   <button
                     type="button"
@@ -653,7 +1102,10 @@ export function EventDetailScreen({ eventId }: Props) {
                         Math.min(Math.max(credentialCount - 1, 0), prev + 1),
                       )
                     }
-                    disabled={safeCredentialIndex >= credentialCount - 1 || credentialCount === 0}
+                    disabled={
+                      safeCredentialIndex >= credentialCount - 1 ||
+                      credentialCount === 0
+                    }
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 disabled:opacity-40"
                   >
                     <ChevronRight size={14} />
@@ -668,24 +1120,27 @@ export function EventDetailScreen({ eventId }: Props) {
       {showOutcomesDialog && data ? (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/35 p-4">
           <div className="w-full max-w-[640px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-start justify-between border-b border-slate-200 px-4 py-3">
-              <h3 className="text-3xl font-semibold leading-none text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-[#FAFAFA] px-6 py-5">
+              <h3 className="text-[28px] font-semibold leading-none text-slate-800">
                 Outcomes &amp; Benefits
               </h3>
+
               <button
                 type="button"
                 onClick={() => setShowOutcomesDialog(false)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"
+                className="inline-flex h-8 w-8 items-center  text-3xl justify-center rounded-md text-slate-500  transition hover:bg-slate-100"
               >
                 ×
               </button>
             </div>
-
             <div className="max-h-[62vh] overflow-y-auto bg-[#eaf4ff] px-4 py-4">
               <div className="space-y-2.5">
                 {data.outcomes.map((item, index) => (
-                  <div key={`${index}-${item}`} className="rounded-xl border border-[#bfdcff] bg-[#f7fbff] p-2.5">
-                    <p className="text-sm leading-6 text-[#2d5c9b]">{item}</p>
+                  <div
+                    key={`${index}-${item}`}
+                    className="rounded-xl border border-[#bfdcff] bg-[#f7fbff] p-2.5"
+                  >
+                    <p className="text-sm leading-6 text-[#4A90E2]">{item}</p>
                   </div>
                 ))}
               </div>
@@ -721,7 +1176,9 @@ export function EventDetailScreen({ eventId }: Props) {
         onKeyLearningChange={(value) =>
           setClaimForms((prev) =>
             prev.map((form, index) =>
-              index === claimActiveIndex ? { ...form, keyLearning: value } : form,
+              index === claimActiveIndex
+                ? { ...form, keyLearning: value }
+                : form,
             ),
           )
         }
@@ -731,7 +1188,10 @@ export function EventDetailScreen({ eventId }: Props) {
         open={showClaimSuccessModal}
         onClose={() => setShowClaimSuccessModal(false)}
       />
-      <ClaimToastBanner toast={claimToast} onClose={() => setClaimToast(null)} />
+      <ClaimToastBanner
+        toast={claimToast}
+        onClose={() => setClaimToast(null)}
+      />
     </div>
   );
 }
@@ -781,10 +1241,18 @@ function EventDetailSkeleton() {
   );
 }
 
-function MetaRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+function MetaRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="flex items-center gap-3">
-      <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[#4A90E2]">
+      <span className="inline-flex h-11 w-11 shrink-0  items-center justify-center rounded-full border border-[#d8e0ea]/10 bg-white text-[#4A90E2] shadow-[0_0_4px_0_rgba(0,0,0,0.08)]">
         {icon}
       </span>
       <div className="min-w-0">
@@ -825,7 +1293,12 @@ function OverviewBlock({
   return (
     <div>
       <div className="relative">
-        <p ref={textRef} className={`${expanded ? "" : "line-clamp-6"} text-sm leading-8 text-slate-600`}>{text}</p>
+        <p
+          ref={textRef}
+          className={`${expanded ? "" : "line-clamp-6"} text-sm leading-8 text-slate-600`}
+        >
+          {text}
+        </p>
         {!expanded && canExpand ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/85 to-transparent" />
         ) : null}
@@ -881,7 +1354,10 @@ function RecommendedEventCard({
                 key={index}
                 className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/65 bg-white/8 text-white shadow-[0_6px_18px_rgba(15,23,42,0.18)] backdrop-blur-md"
               >
-                <Icon size={14} className="drop-shadow-[0_1px_1px_rgba(15,23,42,0.35)]" />
+                <Icon
+                  size={14}
+                  className="drop-shadow-[0_1px_1px_rgba(15,23,42,0.35)]"
+                />
               </span>
             ))}
           </div>
@@ -897,7 +1373,9 @@ function RecommendedEventCard({
             }}
             aria-label={card.isBookmarked ? "Remove bookmark" : "Bookmark card"}
             className={`absolute right-3 top-[10px] z-10 flex h-9 w-9 items-center justify-center rounded-full border bg-white/95 shadow ${
-              card.isBookmarked ? "border-blue-200 text-[#4A90E2]" : "border-slate-100 text-slate-300"
+              card.isBookmarked
+                ? "border-blue-200 text-[#4A90E2]"
+                : "border-slate-100 text-slate-300"
             }`}
           >
             <Bookmark size={15} />
@@ -905,28 +1383,48 @@ function RecommendedEventCard({
 
           <div className="flex h-[62px] shrink-0 flex-col">
             <div className="flex flex-1 flex-col justify-center pr-10">
-              <p className="line-clamp-2 text-sm font-medium leading-[1.32] text-slate-800">{card.title}</p>
-              <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-500">{card.university}</p>
+              <p className="line-clamp-2 text-sm font-medium leading-[1.32] text-slate-800">
+                {card.title}
+              </p>
+              <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-500">
+                {card.university}
+              </p>
             </div>
             <div className="h-px w-full bg-[#edf1f5]" />
           </div>
 
           <ul className="mt-2 space-y-1.5 text-[11px] leading-4 text-slate-500">
             <li className="flex items-center gap-1.5">
-              <MetaIconSmall><Calendar size={10} /></MetaIconSmall>{card.date}
+              <MetaIconSmall>
+                <Calendar size={10} />
+              </MetaIconSmall>
+              {card.date}
             </li>
             <li className="flex items-center gap-1.5">
-              <MetaIconSmall><Clock3 size={10} /></MetaIconSmall>{card.time}
+              <MetaIconSmall>
+                <Clock3 size={10} />
+              </MetaIconSmall>
+              {card.time}
             </li>
             <li className="flex items-center gap-1.5">
-              <MetaIconSmall><MapPin size={10} /></MetaIconSmall>{card.location}
+              <MetaIconSmall>
+                <MapPin size={10} />
+              </MetaIconSmall>
+              {card.location}
             </li>
             <li className="flex items-center gap-1.5">
-              <MetaIconSmall><Users size={10} /></MetaIconSmall>{card.seats}
+              <MetaIconSmall>
+                <User size={10} />
+              </MetaIconSmall>
+              {card.seats}
             </li>
           </ul>
 
-          <p className={`mt-auto pt-3 text-[14px] font-semibold ${card.price.includes("Free") ? "text-emerald-600" : "text-cyan-700"}`}>{card.price}</p>
+          <p
+            className={`mt-auto pt-3 text-[14px] font-semibold ${card.price.includes("Free") ? "text-emerald-600" : "text-cyan-700"}`}
+          >
+            {card.price}
+          </p>
         </div>
       </article>
     </Link>
@@ -952,9 +1450,11 @@ function MiniStat({ value, label }: { value: string; label: string }) {
 
 function StatItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="px-8 first:pl-0">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold leading-none text-slate-800">{value}</p>
+    <div className="px-7 first:pl-0">
+      <p className="text-base text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold leading-none text-slate-800">
+        {value}
+      </p>
     </div>
   );
 }

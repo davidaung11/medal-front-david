@@ -45,13 +45,16 @@ const initialSignUp: SignUpFormState = {
 
 function getGoogleAuthUrl() {
   if (typeof window !== "undefined") {
-    const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const isLocalHost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
     if (isLocalHost) {
       return "http://localhost:8080/api/v1/auth/google";
     }
   }
 
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
+  const configuredBaseUrl =
+    process.env.NEXT_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
   const fallbackBaseUrl = "https://api.medalverse.ai";
   const baseUrl = (configuredBaseUrl ?? fallbackBaseUrl).replace(/\/$/, "");
 
@@ -71,22 +74,31 @@ export function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
-  const [checkEmailFlow, setCheckEmailFlow] = useState<CheckEmailFlow>("signUp");
+  const [checkEmailFlow, setCheckEmailFlow] =
+    useState<CheckEmailFlow>("signUp");
 
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [legalModalType, setLegalModalType] = useState<LegalModalType | null>(null);
+  const [legalModalType, setLegalModalType] = useState<LegalModalType | null>(
+    null,
+  );
   const [legalModalContent, setLegalModalContent] = useState("");
   const [legalModalLoading, setLegalModalLoading] = useState(false);
   const [legalModalError, setLegalModalError] = useState<string | null>(null);
 
-  const passwordValidation = getPasswordValidationState(signUpForm.password, signUpForm.confirmPassword);
+  const passwordValidation = getPasswordValidationState(
+    signUpForm.password,
+    signUpForm.confirmPassword,
+  );
   const hasMinLength = passwordValidation.hasMinLength;
   const hasSpecialCharacter = passwordValidation.hasSpecial;
   const passwordsMatched = passwordValidation.matched;
 
-  const otpComplete = useMemo(() => otp.every((digit) => digit.trim().length === 1), [otp]);
+  const otpComplete = useMemo(
+    () => otp.every((digit) => digit.trim().length === 1),
+    [otp],
+  );
 
   async function onContinueWithEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,8 +108,10 @@ export function AuthScreen() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/v1/users/email?email=${email}`);
-      
+      const response = await fetch(
+        `${getBackendBaseUrl()}/api/v1/users/email?email=${email}`,
+      );
+
       if (response.ok) {
         setSignInForm((prev) => ({ ...prev, email }));
         setMode("signIn");
@@ -118,7 +132,7 @@ export function AuthScreen() {
     setLoading(true);
 
     try {
-      const response = await fetch(ROUTES.apiLogin, {
+      const response = await fetch(`${APP_BASE_PATH}${ROUTES.apiLogin}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -140,7 +154,7 @@ export function AuthScreen() {
       const token = payload?.token || payload?.data?.backendAccessToken;
       if (typeof token === "string" && token) {
         // Optional sync back to Next.js cookies if you ever re-enable middleware
-        await fetch("/api/auth/session", {
+        await fetch(`${APP_BASE_PATH}/api/auth/session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),
@@ -169,16 +183,19 @@ export function AuthScreen() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/v1/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${getBackendBaseUrl()}/api/v1/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: signUpForm.email,
+            password: signUpForm.password,
+          }),
         },
-        body: JSON.stringify({
-          email: signUpForm.email,
-          password: signUpForm.password,
-        }),
-      });
+      );
 
       const payload = await response.json();
 
@@ -189,7 +206,7 @@ export function AuthScreen() {
 
       const token = payload?.data?.backendAccessToken;
       if (typeof token === "string" && token) {
-        await fetch("/api/auth/session", {
+        await fetch(`${APP_BASE_PATH}/api/auth/session`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),
@@ -198,7 +215,9 @@ export function AuthScreen() {
         writeBackendAccessToken(token);
       }
       window.localStorage.removeItem(ONBOARDING_COMPLETED_KEY);
-      router.replace(`${ROUTES.onboarding}?email=${encodeURIComponent(signUpForm.email)}`);
+      router.replace(
+        `${ROUTES.onboarding}?email=${encodeURIComponent(signUpForm.email)}`,
+      );
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
@@ -208,10 +227,16 @@ export function AuthScreen() {
   }
 
   function openLegalModal(type: LegalModalType) {
-    const isThai = typeof window !== "undefined" && window.navigator.language.toLowerCase().startsWith("th");
+    const isThai =
+      typeof window !== "undefined" &&
+      window.navigator.language.toLowerCase().startsWith("th");
     const pathByType: Record<LegalModalType, string> = {
-      policy: isThai ? "/app/assets/legal/policy-th.txt" : "/app/assets/legal/policy-en.txt",
-      terms: isThai ? "/app/assets/legal/terms-th.txt" : "/app/assets/legal/terms-en.txt",
+      policy: isThai
+        ? "/app/assets/legal/policy-th.txt"
+        : "/app/assets/legal/policy-en.txt",
+      terms: isThai
+        ? "/app/assets/legal/terms-th.txt"
+        : "/app/assets/legal/terms-en.txt",
     };
 
     setLegalModalType(type);
@@ -250,14 +275,17 @@ export function AuthScreen() {
     const code = otp.join("");
 
     try {
-      const response = await fetch(`${getBackendBaseUrl()}/api/v1/auth/verify-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: emailToVerify,
-          code,
-        }),
-      });
+      const response = await fetch(
+        `${getBackendBaseUrl()}/api/v1/auth/verify-email`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: emailToVerify,
+            code,
+          }),
+        },
+      );
 
       const payload = await response.json();
 
@@ -290,19 +318,19 @@ export function AuthScreen() {
             priority
             className="object-cover"
           />
-        <section className="relative hidden overflow-hidden lg:block">
-          <Image
-            src="/app/assets/images/Bench.png"
-            alt="Bench decoration"
-            fill
-            priority
-            className="object-cover object-left-bottom"
-          />
-        </section>
+          <section className="relative hidden overflow-hidden lg:block">
+            <Image
+              src="/app/assets/images/Bench.png"
+              alt="Bench decoration"
+              fill
+              priority
+              className="object-cover object-left-bottom"
+            />
+          </section>
 
-        <section className="relative flex items-center justify-center px-5 py-5 sm:px-6 md:px-8 lg:px-12">
-          <div className="w-full max-w-[540px]">
-            {/* <button
+          <section className="relative flex items-center justify-center px-5 py-5 sm:px-6 md:px-8 lg:px-12">
+            <div className="w-full max-w-[540px]">
+              {/* <button
               type="button"
               className="mb-6 inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-slate-900 md:mb-8"
             >
@@ -310,195 +338,262 @@ export function AuthScreen() {
               Back
             </button> */}
 
-            <div className="mx-auto flex h-11 w-11 items-center justify-center">
-              <img
-                src={`${APP_BASE_PATH}/app/assets/logos/medalverse-logo.svg`}
-                alt="Medalverse Logo"
-                width={32}
-                height={32}
-                className="h-[32px] w-[32px]"
-                onError={(event) => {
-                  event.currentTarget.onerror = null;
-                  event.currentTarget.src = `${APP_BASE_PATH}/app/assets/logos/medalverse-logo.svg`;
-                }}
-              />
-            </div>
+              <div className="mx-auto flex h-11 w-11 items-center justify-center">
+                <img
+                  src={`${APP_BASE_PATH}/assets/logos/medalverse-logo.svg`}
+                  alt="Medalverse Logo"
+                  width={32}
+                  height={32}
+                  className="h-[32px] w-[32px]"
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = `${APP_BASE_PATH}/assets/logos/medalverse-logo.svg`;
+                  }}
+                />
+              </div>
 
-            <h1 className="text-center text-3xl font-semibold tracking-tight text-slate-800">
-              {mode === "enterEmail"
-                ? "Sign In or Join Now!"
-                : mode === "signIn"
-                  ? "Welcome Back"
-                  : "Create your account"}
-            </h1>
-            <p className="mt-2 text-center text-sm text-slate-500 md:mt-3 md:text-lg">
-              {mode === "enterEmail"
-                ? "Login or create your Medalverse account."
-                : mode === "signIn"
-                  ? "Sign in to access the Medalverse"
-                  : "Sign up to access the Medalverse"}
-            </p>
+              <h1 className="text-center text-3xl font-semibold tracking-tight text-slate-800">
+                {mode === "enterEmail"
+                  ? "Sign In or Join Now!"
+                  : mode === "signIn"
+                    ? "Welcome Back"
+                    : "Create your account"}
+              </h1>
+              <p className="mt-2 text-center text-sm text-slate-500 md:mt-3 md:text-lg">
+                {mode === "enterEmail"
+                  ? "Login or create your Medalverse account."
+                  : mode === "signIn"
+                    ? "Sign in to access the Medalverse"
+                    : "Sign up to access the Medalverse"}
+              </p>
 
-            <div className="mt-5 md:mt-6">
-              {mode === "enterEmail" ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.location.href = getGoogleAuthUrl();
-                    }}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 md:h-12 md:text-base"
-                  >
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Continue with Google
-                  </button>
+              <div className="mt-5 md:mt-6">
+                {mode === "enterEmail" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.href = getGoogleAuthUrl();
+                      }}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 md:h-12 md:text-base"
+                    >
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          fill="#4285F4"
+                        />
+                        <path
+                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          fill="#34A853"
+                        />
+                        <path
+                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          fill="#FBBC05"
+                        />
+                        <path
+                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          fill="#EA4335"
+                        />
+                      </svg>
+                      Continue with Google
+                    </button>
 
-                  <div className="my-5 flex items-center gap-3 md:my-6">
-                    <div className="h-px flex-1 bg-slate-200" />
-                    <span className="text-xs font-semibold text-slate-400">OR</span>
-                    <div className="h-px flex-1 bg-slate-200" />
-                  </div>
+                    <div className="my-5 flex items-center gap-3 md:my-6">
+                      <div className="h-px flex-1 bg-slate-200" />
+                      <span className="text-xs font-semibold text-slate-400">
+                        OR
+                      </span>
+                      <div className="h-px flex-1 bg-slate-200" />
+                    </div>
 
-                  <form className="space-y-3 md:space-y-4" onSubmit={onContinueWithEmail}>
-                    <p className="text-xs text-slate-500 font-medium">Enter your email address to sign in or create an account</p>
+                    <form
+                      className="space-y-3 md:space-y-4"
+                      onSubmit={onContinueWithEmail}
+                    >
+                      <p className="text-xs text-slate-500 font-medium">
+                        Enter your email address to sign in or create an account
+                      </p>
+                      <TextInput
+                        id="emailInput"
+                        type="email"
+                        value={email}
+                        onChange={(value) => setEmail(value)}
+                        placeholder="user@medalvese.ai"
+                      />
+
+                      {error ? <ErrorText text={error} /> : null}
+
+                      <button
+                        type="submit"
+                        disabled={loading || !email}
+                        className="mt-2 h-11 w-full rounded-xl bg-[#23272f] text-base font-semibold text-white transition hover:bg-black disabled:opacity-60 md:mt-3 md:h-12 md:rounded-2xl md:text-lg"
+                      >
+                        {loading ? "Checking..." : "Continue with Email"}
+                      </button>
+                    </form>
+                  </>
+                ) : mode === "signIn" ? (
+                  <form className="space-y-3 md:space-y-4" onSubmit={onSignIn}>
+                    <div className="flex items-center justify-between">
+                      <FieldLabel htmlFor="signInEmail" label="Email" />
+                      <button
+                        type="button"
+                        onClick={() => setMode("enterEmail")}
+                        className="text-xs text-[#3C7ACB] hover:underline"
+                      >
+                        Change
+                      </button>
+                    </div>
                     <TextInput
-                      id="emailInput"
+                      id="signInEmail"
                       type="email"
-                      value={email}
-                      onChange={(value) => setEmail(value)}
-                      placeholder="user@medalvese.ai"
+                      value={signInForm.email}
+                      onChange={(value) =>
+                        setSignInForm((prev) => ({ ...prev, email: value }))
+                      }
+                      placeholder="user@medalverse.ai"
+                    />
+
+                    <FieldLabel htmlFor="signInPassword" label="Password" />
+                    <PasswordInput
+                      id="signInPassword"
+                      value={signInForm.password}
+                      onChange={(value) =>
+                        setSignInForm((prev) => ({ ...prev, password: value }))
+                      }
+                      visible={showSignInPassword}
+                      onToggleVisible={() =>
+                        setShowSignInPassword((prev) => !prev)
+                      }
+                      placeholder="Enter your password"
                     />
 
                     {error ? <ErrorText text={error} /> : null}
 
                     <button
                       type="submit"
-                      disabled={loading || !email}
-                      className="mt-2 h-11 w-full rounded-xl bg-[#23272f] text-base font-semibold text-white transition hover:bg-black disabled:opacity-60 md:mt-3 md:h-12 md:rounded-2xl md:text-lg"
+                      disabled={loading}
+                      className="mt-2 h-11 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-base font-semibold text-white transition hover:from-black hover:to-slate-900 disabled:opacity-60 md:mt-3 md:h-12 md:rounded-2xl md:text-lg"
                     >
-                      {loading ? "Checking..." : "Continue with Email"}
+                      {loading ? "Signing In..." : "Sign In"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="mx-auto block text-sm text-slate-500 underline decoration-slate-300 underline-offset-4"
+                      onClick={() => setOverlayMode("forgot")}
+                    >
+                      Forgot Password?
                     </button>
                   </form>
-                </>
-              ) : mode === "signIn" ? (
-                <form className="space-y-3 md:space-y-4" onSubmit={onSignIn}>
-                  <div className="flex items-center justify-between">
-                    <FieldLabel htmlFor="signInEmail" label="Email" />
-                    <button type="button" onClick={() => setMode("enterEmail")} className="text-xs text-[#3C7ACB] hover:underline">Change</button>
-                  </div>
-                  <TextInput
-                    id="signInEmail"
-                    type="email"
-                    value={signInForm.email}
-                    onChange={(value) => setSignInForm((prev) => ({ ...prev, email: value }))}
-                    placeholder="user@medalverse.ai"
-                  />
+                ) : (
+                  <form className="space-y-3 md:space-y-4" onSubmit={onSignUp}>
+                    <FieldLabel htmlFor="signUpEmail" label="Email" />
+                    <TextInput
+                      id="signUpEmail"
+                      type="email"
+                      value={signUpForm.email}
+                      onChange={(value) =>
+                        setSignUpForm((prev) => ({ ...prev, email: value }))
+                      }
+                      placeholder="user@medalverse.ai"
+                    />
 
-                  <FieldLabel htmlFor="signInPassword" label="Password" />
-                  <PasswordInput
-                    id="signInPassword"
-                    value={signInForm.password}
-                    onChange={(value) => setSignInForm((prev) => ({ ...prev, password: value }))}
-                    visible={showSignInPassword}
-                    onToggleVisible={() => setShowSignInPassword((prev) => !prev)}
-                    placeholder="Enter your password"
-                  />
+                    <FieldLabel htmlFor="signUpPassword" label="Password" />
+                    <PasswordInput
+                      id="signUpPassword"
+                      value={signUpForm.password}
+                      onChange={(value) =>
+                        setSignUpForm((prev) => ({ ...prev, password: value }))
+                      }
+                      visible={showSignUpPassword}
+                      onToggleVisible={() =>
+                        setShowSignUpPassword((prev) => !prev)
+                      }
+                      placeholder="Enter your password"
+                    />
 
-                  {error ? <ErrorText text={error} /> : null}
+                    <FieldLabel
+                      htmlFor="confirmPassword"
+                      label="Confirm Password"
+                    />
+                    <PasswordInput
+                      id="confirmPassword"
+                      value={signUpForm.confirmPassword}
+                      onChange={(value) =>
+                        setSignUpForm((prev) => ({
+                          ...prev,
+                          confirmPassword: value,
+                        }))
+                      }
+                      visible={showConfirmPassword}
+                      onToggleVisible={() =>
+                        setShowConfirmPassword((prev) => !prev)
+                      }
+                      placeholder="Confirm your password"
+                    />
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="mt-2 h-11 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-base font-semibold text-white transition hover:from-black hover:to-slate-900 disabled:opacity-60 md:mt-3 md:h-12 md:rounded-2xl md:text-lg"
-                  >
-                    {loading ? "Signing In..." : "Sign In"}
-                  </button>
+                    <RequirementRow
+                      done={hasMinLength}
+                      text="Must be at least 8 characters"
+                    />
+                    <RequirementRow
+                      done={hasSpecialCharacter}
+                      text="Must contain one special character"
+                    />
 
-                  <button
-                    type="button"
-                    className="mx-auto block text-sm text-slate-500 underline decoration-slate-300 underline-offset-4"
-                    onClick={() => setOverlayMode("forgot")}
-                  >
-                    Forgot Password?
-                  </button>
-                </form>
-              ) : (
-                <form className="space-y-3 md:space-y-4" onSubmit={onSignUp}>
-                  <FieldLabel htmlFor="signUpEmail" label="Email" />
-                  <TextInput
-                    id="signUpEmail"
-                    type="email"
-                    value={signUpForm.email}
-                    onChange={(value) => setSignUpForm((prev) => ({ ...prev, email: value }))}
-                    placeholder="user@medalverse.ai"
-                  />
+                    {error ? <ErrorText text={error} /> : null}
 
+                    <button
+                      type="submit"
+                      className="mt-2 h-11 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-base font-semibold text-white transition hover:from-black hover:to-slate-900 md:mt-3 md:h-12 md:rounded-2xl md:text-lg"
+                    >
+                      Sign Up
+                    </button>
 
-                  <FieldLabel htmlFor="signUpPassword" label="Password" />
-                  <PasswordInput
-                    id="signUpPassword"
-                    value={signUpForm.password}
-                    onChange={(value) => setSignUpForm((prev) => ({ ...prev, password: value }))}
-                    visible={showSignUpPassword}
-                    onToggleVisible={() => setShowSignUpPassword((prev) => !prev)}
-                    placeholder="Enter your password"
-                  />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSignInForm((prev) => ({
+                          ...prev,
+                          email: signUpForm.email,
+                        }));
+                        setMode("signIn");
+                      }}
+                      className="mx-auto block pt-3 text-center text-md font-medium text-[#3C7ACB] hover:underline md:text-md"
+                    >
+                      Already have an account?
+                    </button>
+                  </form>
+                )}
 
-                  <FieldLabel htmlFor="confirmPassword" label="Confirm Password" />
-                  <PasswordInput
-                    id="confirmPassword"
-                    value={signUpForm.confirmPassword}
-                    onChange={(value) => setSignUpForm((prev) => ({ ...prev, confirmPassword: value }))}
-                    visible={showConfirmPassword}
-                    onToggleVisible={() => setShowConfirmPassword((prev) => !prev)}
-                    placeholder="Confirm your password"
-                  />
-
-                  <RequirementRow done={hasMinLength} text="Must be at least 8 characters" />
-                  <RequirementRow done={hasSpecialCharacter} text="Must contain one special character" />
-
-                  {error ? <ErrorText text={error} /> : null}
-
-                  <button
-                    type="submit"
-                    className="mt-2 h-11 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-base font-semibold text-white transition hover:from-black hover:to-slate-900 md:mt-3 md:h-12 md:rounded-2xl md:text-lg"
-                  >
-                    Sign Up
-                  </button>
-
+                <p className="mt-5 text-xs text-slate-500 md:mt-6 md:text-sm">
+                  By clicking continue, you agree to our{" "}
                   <button
                     type="button"
-                    onClick={() => {
-                      setSignInForm((prev) => ({ ...prev, email: signUpForm.email }));
-                      setMode("signIn");
-                    }}
-                    className="mx-auto block pt-3 text-center text-md font-medium text-[#3C7ACB] hover:underline md:text-md"
+                    onClick={() => openLegalModal("terms")}
+                    className="text-[#3C7ACB] underline"
                   >
-                    Already have an account?
+                    Terms of Service
+                  </button>{" "}
+                  and{" "}
+                  <button
+                    type="button"
+                    onClick={() => openLegalModal("policy")}
+                    className="text-[#3C7ACB] underline"
+                  >
+                    Privacy Policy
                   </button>
-                </form>
-              )}
-
-              <p className="mt-5 text-xs text-slate-500 md:mt-6 md:text-sm">
-                By clicking continue, you agree to our{" "}
-                <button type="button" onClick={() => openLegalModal("terms")} className="text-[#3C7ACB] underline">
-                  Terms of Service
-                </button>{" "}
-                and{" "}
-                <button type="button" onClick={() => openLegalModal("policy")} className="text-[#3C7ACB] underline">
-                  Privacy Policy
-                </button>
-                .
-              </p>
+                  .
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
       </div>
 
       {overlayMode !== "none" ? (
@@ -520,13 +615,26 @@ export function AuthScreen() {
             {overlayMode === "forgot" ? (
               <form onSubmit={onForgotPassword} className="space-y-4">
                 <CenterIcon icon={<Mail size={18} />} />
-                <h3 className="text-center text-2xl font-semibold text-slate-800 md:text-3xl">Forgot password?</h3>
+                <h3 className="text-center text-2xl font-semibold text-slate-800 md:text-3xl">
+                  Forgot password?
+                </h3>
                 <p className="text-center text-sm text-slate-500">
-                  Enter your email address associated with your account, and we&apos;ll send you a link to reset your password.
+                  Enter your email address associated with your account, and
+                  we&apos;ll send you a link to reset your password.
                 </p>
                 <FieldLabel htmlFor="forgotEmail" label="Email" />
-                <TextInput id="forgotEmail" type="email" value={signInForm.email} onChange={(value) => setSignInForm((prev) => ({ ...prev, email: value }))} />
-                <button type="submit" className="h-12 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-sm font-semibold text-white">
+                <TextInput
+                  id="forgotEmail"
+                  type="email"
+                  value={signInForm.email}
+                  onChange={(value) =>
+                    setSignInForm((prev) => ({ ...prev, email: value }))
+                  }
+                />
+                <button
+                  type="submit"
+                  className="h-12 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-sm font-semibold text-white"
+                >
                   Reset Password
                 </button>
               </form>
@@ -535,9 +643,15 @@ export function AuthScreen() {
             {overlayMode === "checkEmail" ? (
               <div className="space-y-4">
                 <CenterIcon icon={<Mail size={18} />} />
-                <h3 className="text-center text-2xl font-semibold text-slate-800 md:text-3xl">Check your email</h3>
-                <p className="text-center text-sm text-slate-500">We&apos;ve sent a 6-digit code to your email</p>
-                <p className="text-center text-xs text-slate-400">Reference number: xxxxxx</p>
+                <h3 className="text-center text-2xl font-semibold text-slate-800 md:text-3xl">
+                  Check your email
+                </h3>
+                <p className="text-center text-sm text-slate-500">
+                  We&apos;ve sent a 6-digit code to your email
+                </p>
+                <p className="text-center text-xs text-slate-400">
+                  Reference number: xxxxxx
+                </p>
 
                 <div className="grid grid-cols-6 gap-2">
                   {otp.map((digit, index) => (
@@ -545,8 +659,12 @@ export function AuthScreen() {
                       key={index}
                       value={digit}
                       onChange={(event) => {
-                        const next = event.target.value.replace(/\D/g, "").slice(-1);
-                        setOtp((prev) => prev.map((v, i) => (i === index ? next : v)));
+                        const next = event.target.value
+                          .replace(/\D/g, "")
+                          .slice(-1);
+                        setOtp((prev) =>
+                          prev.map((v, i) => (i === index ? next : v)),
+                        );
                       }}
                       className="h-11 rounded-xl border border-sky-300 bg-sky-50 text-center text-xl text-sky-600 outline-none ring-2 ring-transparent transition focus:ring-sky-300 md:h-12 md:text-2xl"
                     />
@@ -565,7 +683,10 @@ export function AuthScreen() {
                 {error ? <ErrorText text={error} /> : null}
 
                 <p className="text-center text-xs text-slate-400">
-                  Didn&apos;t receive the email? <button type="button" className="text-blue-600">Resend Code</button>
+                  Didn&apos;t receive the email?{" "}
+                  <button type="button" className="text-blue-600">
+                    Resend Code
+                  </button>
                 </p>
               </div>
             ) : null}
@@ -579,33 +700,59 @@ export function AuthScreen() {
                 }}
               >
                 <CenterIcon icon={<Mail size={18} />} />
-                <h3 className="text-center text-2xl font-semibold text-slate-800 md:text-3xl">Set new password</h3>
-                <p className="text-center text-sm text-slate-500">Your new password must be different from previously used password.</p>
+                <h3 className="text-center text-2xl font-semibold text-slate-800 md:text-3xl">
+                  Set new password
+                </h3>
+                <p className="text-center text-sm text-slate-500">
+                  Your new password must be different from previously used
+                  password.
+                </p>
 
                 <FieldLabel htmlFor="resetPassword" label="Password" />
                 <PasswordInput
                   id="resetPassword"
                   value={signUpForm.password}
-                  onChange={(value) => setSignUpForm((prev) => ({ ...prev, password: value }))}
+                  onChange={(value) =>
+                    setSignUpForm((prev) => ({ ...prev, password: value }))
+                  }
                   visible={showSignUpPassword}
                   onToggleVisible={() => setShowSignUpPassword((prev) => !prev)}
                   placeholder="Enter your password"
                 />
 
-                <FieldLabel htmlFor="resetConfirmPassword" label="Confirm Password" />
+                <FieldLabel
+                  htmlFor="resetConfirmPassword"
+                  label="Confirm Password"
+                />
                 <PasswordInput
                   id="resetConfirmPassword"
                   value={signUpForm.confirmPassword}
-                  onChange={(value) => setSignUpForm((prev) => ({ ...prev, confirmPassword: value }))}
+                  onChange={(value) =>
+                    setSignUpForm((prev) => ({
+                      ...prev,
+                      confirmPassword: value,
+                    }))
+                  }
                   visible={showConfirmPassword}
-                  onToggleVisible={() => setShowConfirmPassword((prev) => !prev)}
+                  onToggleVisible={() =>
+                    setShowConfirmPassword((prev) => !prev)
+                  }
                   placeholder="Confirm your password"
                 />
 
-                <RequirementRow done={hasMinLength} text="Must be at least 8 characters" />
-                <RequirementRow done={hasSpecialCharacter} text="Must contain one special character" />
+                <RequirementRow
+                  done={hasMinLength}
+                  text="Must be at least 8 characters"
+                />
+                <RequirementRow
+                  done={hasSpecialCharacter}
+                  text="Must contain one special character"
+                />
 
-                <button type="submit" className="h-12 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-sm font-semibold text-white">
+                <button
+                  type="submit"
+                  className="h-12 w-full rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 text-sm font-semibold text-white"
+                >
                   Reset Password
                 </button>
               </form>
@@ -616,7 +763,9 @@ export function AuthScreen() {
 
       {legalModalType ? (
         <LegalDocumentDialog
-          title={legalModalType === "terms" ? "Term of Service" : "Privacy Notice"}
+          title={
+            legalModalType === "terms" ? "Term of Service" : "Privacy Notice"
+          }
           content={legalModalContent}
           loading={legalModalLoading}
           error={legalModalError}
@@ -629,7 +778,10 @@ export function AuthScreen() {
 
 function FieldLabel({ label, htmlFor }: { label: string; htmlFor: string }) {
   return (
-    <label htmlFor={htmlFor} className="mb-2 block text-sm font-medium text-slate-600 md:text-base">
+    <label
+      htmlFor={htmlFor}
+      className="mb-2 block text-sm font-medium text-slate-600 md:text-base"
+    >
       {label}
     </label>
   );
@@ -702,7 +854,9 @@ function PasswordInput({
 function RequirementRow({ done, text }: { done: boolean; text: string }) {
   return (
     <div className="flex items-center gap-2 text-sm text-slate-500 md:text-base">
-      <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${done ? "bg-blue-500 text-white" : "bg-slate-200 text-slate-200"}`}>
+      <span
+        className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${done ? "bg-blue-500 text-white" : "bg-slate-200 text-slate-200"}`}
+      >
         <Check size={12} />
       </span>
       {text}
@@ -719,5 +873,9 @@ function CenterIcon({ icon }: { icon: React.ReactNode }) {
 }
 
 function ErrorText({ text }: { text: string }) {
-  return <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{text}</p>;
+  return (
+    <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+      {text}
+    </p>
+  );
 }
