@@ -7,9 +7,9 @@ import { ROUTES } from "@/shared/constants/routes";
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession();
 
-  if (!session) {
-    redirect(ROUTES.login);
-  }
+  // if (!session) {
+  //   redirect(ROUTES.login);
+  // }
 
   return (
     <div className="relative h-screen w-full overflow-hidden p-2">
@@ -27,7 +27,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
       />
 
       <div className="relative z-10 flex h-full overflow-hidden rounded-2xl shadow-sm">
-        <AppMainSidebar userName={session.name} />
+        <AppMainSidebar userName={session?.name ||""} />
         <main className="flex min-w-0 flex-1 overflow-hidden px-1.5">
           <div className="min-w-0 flex-1 overflow-auto rounded-3xl px-2 pb-2">
             {children}
